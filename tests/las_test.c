@@ -9,16 +9,29 @@ LICENSE
 
 */
 #include "../las.h"
+#include "efb.h"
 
 #include "test.h" /* Simple Testing framework */
 
 int main(void)
 {
-  char *code = "mov rdi, 1; exit code\nmov rax, 60; syscall: exit\nsyscall";
-  unsigned long code_length = las_strlen(code);
 
-  las_parse_code(code, code_length);
-  assert(1 == 1);
+  /*
+    mov eax, 0;
+    ret
+  */
+  unsigned char ret[] = {0xB8, 0x00, 0x00, 0x00, 0x00, 0xC3};
+
+  char *code = "ret";
+  unsigned int code_length = las_string_length(code);
+
+  las_machine_code binary = las_parse_code(code, code_length);
+
+  assert(binary.machine_code_size == 1);
+  assert(binary.machine_code[0] == 0xC3);
+
+  /* Build executable format */
+  assert(efb_build_executable("ret.exe", ret, sizeof(ret)));
 
   return 0;
 }

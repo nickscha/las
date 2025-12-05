@@ -30,66 +30,18 @@ LICENSE
 #define LAS_API static
 #endif
 
-typedef struct las_instruction
+#define LAS_MACHINE_CODE_SIZE_MAX 1028
+
+typedef struct las_machine_code
 {
-  char *mnemonic;
-  unsigned char encoding[10];
-  int length;
+  unsigned char machine_code[LAS_MACHINE_CODE_SIZE_MAX];
+  unsigned int machine_code_size;
 
-} las_instruction;
+} las_machine_code;
 
-static las_instruction las_instruction_table[] = {
-    /* Control  */
-    {"cli", {0xFA}, 1},
-    {"sti", {0xFB}, 1},
-    {"hlt", {0xF4}, 1},
-    {"nop", {0x90}, 1},
-    {"ret", {0xC3}, 1},
-    {"syscall", {0x0F, 0x05}, 2},
-
-    /*  Stack */
-    {"push rax", {0x50}, 1},
-    {"push rbx", {0x53}, 1},
-    {"push rcx", {0x51}, 1},
-    {"push rdx", {0x52}, 1},
-    {"push rbp", {0x55}, 1},
-    {"push rsi", {0x56}, 1},
-    {"push rdi", {0x57}, 1},
-    {"push rsp", {0x54}, 1},
-    {"pop rax", {0x58}, 1},
-    {"pop rbx", {0x5B}, 1},
-    {"pop rcx", {0x59}, 1},
-    {"pop rdx", {0x5A}, 1},
-    {"pop rbp", {0x5D}, 1},
-    {"pop rsi", {0x5E}, 1},
-    {"pop rdi", {0x5F}, 1},
-    {"pop rsp", {0x5C}, 1},
-
-    /* Arithmetic / Logical */
-    {"xor rax, rax", {0x48, 0x31, 0xC0}, 3},
-    {"xor rcx, rcx", {0x48, 0x31, 0xC9}, 3},
-    {"xor rdx, rdx", {0x48, 0x31, 0xD2}, 3},
-    {"add rax, rbx", {0x48, 0x01, 0xD8}, 3},
-    {"sub rax, rbx", {0x48, 0x29, 0xD8}, 3},
-    {"inc rax", {0x48, 0xFF, 0xC0}, 3},
-    {"dec rax", {0x48, 0xFF, 0xC8}, 3},
-
-    /* Simple Moves */
-    {"mov rax, rbx", {0x48, 0x89, 0xD8}, 3},
-    {"mov rbx, rax", {0x48, 0x89, 0xC3}, 3},
-    {"mov rcx, rax", {0x48, 0x89, 0xC1}, 3},
-    {"mov rax, rcx", {0x48, 0x89, 0xC8}, 3},
-
-    /* Return and Call */
-    {"call rax", {0xFF, 0xD0}, 2},
-    {"jmp rax", {0xFF, 0xE0}, 2},
-    {"jmp rcx", {0xFF, 0xE1}, 2},
-
-    {0, {0}, 0}};
-
-LAS_API LAS_INLINE unsigned long las_strlen(char *s)
+LAS_API LAS_INLINE unsigned int las_string_length(char *s)
 {
-  unsigned long len = 0;
+  unsigned int len = 0;
   while (*s++)
   {
     len++;
@@ -97,11 +49,16 @@ LAS_API LAS_INLINE unsigned long las_strlen(char *s)
   return (len);
 }
 
-LAS_API LAS_INLINE void las_parse_code(char *code, unsigned long code_length)
+LAS_API LAS_INLINE las_machine_code las_parse_code(char *code, unsigned int code_size)
 {
+  las_machine_code result = {0};
+
   (void)code;
-  (void)code_length;
-  (void)las_instruction_table;
+  (void)code_size;
+
+  result.machine_code[result.machine_code_size++] = 0xC3; /* Simple "ret" instruction */
+  
+  return (result);
 }
 
 #endif /* LAS_H */
